@@ -1,0 +1,15 @@
+*.log
+
+# all data files
+/data
+/data_gather/cctv_data
+
+# yolov5 files
+/yolov5
+
+# models
+yolov5s.pt
+yolov5m.pt
+yolov5l.pt
+yolov5x.pt
+yolov5x6.pt
