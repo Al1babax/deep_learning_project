@@ -1,15 +1,18 @@
-import PySimpleGUI as sg
-import numpy as np
-import cv2
-from mss import mss
 import datetime as dt
-import time
 import multiprocessing
+import time
 from multiprocessing import shared_memory
-from utils.screen_region import region
+
+import PySimpleGUI as sg
+import cv2
+import numpy as np
+from mss import mss
+
+from my_utils.screen_region import region, main
+from yolov5_detect import run_predict
 
 
-def screen_recorder(path: str, filename: str, save: bool, position, width, height):
+def screen_recorder(path: str, filename: str, save: bool, position, width, height, object_detection: bool):
     """
     Screen recording function, supports recording a specific region of the screen and multiprocessing.
 
@@ -39,7 +42,7 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
 
     if save:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(filename=f'{path}/{filename}_{dt.datetime.now().strftime("%H_%M_%S")}.mp4', fourcc=fourcc,
+        out = cv2.VideoWriter(filename=f'{path}/{filename}.mp4', fourcc=fourcc,
                               fps=fps,
                               frameSize=(width, height))
 
@@ -58,9 +61,11 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
             sct_img = sct.grab(bounding_box)
             frame = np.array(sct_img)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-            cv2.imshow('screen', frame)
             if save:
+                cv2.imshow('screen', frame)
                 out.write(frame)
+            else:
+                cv2.imshow('screen', frame)
             if debug:
                 print(f"[INFO] Capture time: {round(time.time() - recording_start, 3)} seconds,", end=" ")
                 print(f"Frames per second: {frames_per_second},", end=" ")
@@ -77,14 +82,26 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
     stop_record_shm.buf[1] = 1
 
 
+def object_detection(path: str, filename: str):
+    # full_path = f'{path}/{filename}_{dt.datetime.now().strftime("%H_%M_%S")}.mp4'
+    full_path = f'{path}/{filename}.mp4'
+    run_predict(full_path)
+
+
 def open_window():
     layout = [
         [sg.Text('Enter the name of the file to save:'), sg.InputText(default_text="test")],
-        [sg.Text("Choose save location:"),
-         sg.InputText(default_text="C:/Users/Alibaba/Desktop/data stuff/syvaoppiminen-tehtavat/osa_4/data"),
-         sg.FolderBrowse(),
-         sg.Checkbox("Save file", default=True)],
-        [sg.Button('Start recording'), sg.Button("Stop recording"), sg.Button("Choose region")]
+        [
+            sg.Text("Choose save location:"),
+            sg.InputText(default_text="C:/Users/Alibaba/Desktop/deep_learning_project/deep_learning_project/data"),
+            sg.FolderBrowse(),
+            sg.Checkbox("Save file", default=False)],
+        [
+            sg.Button('Start recording'),
+            sg.Button("Stop recording"),
+            sg.Button("Choose region"),
+            sg.Checkbox("Object detection", default=False)
+        ]
     ]
 
     window = sg.Window('Screen recorder', layout)
@@ -98,7 +115,7 @@ def open_window():
         event, values = window.read()
         print(event, values)
         record_running = shared_memory.SharedMemory(name='screen_recording_running')
-        print(record_running.buf[0])
+        # print(record_running.buf[0])
         if event == sg.WIN_CLOSED:
             break
 
@@ -107,18 +124,19 @@ def open_window():
             # values[1] = path
             # values[0] = filename
             # values[2] = save - BOOLEAN
+            # values[3] = object_detection - BOOLEAN
             p1 = multiprocessing.Process(target=screen_recorder,
-                                         args=(values[1], values[0], values[2], position, width, height))
+                                         args=(values[1], values[0], values[2], position, width, height, values[3]))
             p1.start()
         elif event == 'Start recording' and record_running.buf[0] == 1:
             print("[WARNING] Recording already running")
 
         if event == 'Choose region' and record_running.buf[0] == 0:
             queue = multiprocessing.Queue()
-            p2 = multiprocessing.Process(target=region, args=(queue,))
+            p2 = multiprocessing.Process(target=main, args=(queue,))
             p2.start()
             coordinates = queue.get()
-            print(coordinates)
+            # print(coordinates)
             p2.join()
             position = (coordinates[0][1], coordinates[0][0])
             width = coordinates[1][0] - coordinates[0][0]
@@ -142,6 +160,12 @@ def open_window():
                 p1.join()
                 record_running.buf[1] = 0
                 print("[INFO] Closed recording subprocess succesfully")
+
+                if values[3] is True:
+                    print("[INFO] Starting object detection")
+                    object_detection(values[1], values[0])
+                    print("[INFO] Object detection finished")
+
         elif event == 'Stop recording' and record_running.buf[0] == 0:
             print("[WARNING] Recording not running")
 

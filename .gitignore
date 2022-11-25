@@ -5,7 +5,7 @@
 /data_gather/cctv_data
 
 # yolov5 files
-/yolov5
+/screen_recorder/my_utils/yolov5
 
 # models
 yolov5s.pt
