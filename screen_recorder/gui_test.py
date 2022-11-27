@@ -12,7 +12,7 @@ from my_utils.screen_region import region, main
 from yolov5_detect import run_predict
 
 
-def screen_recorder(path: str, filename: str, save: bool, position, width, height, object_detection: bool):
+def screen_recorder(path: str, filename: str, save: bool, position, width, height):
     """
     Screen recording function, supports recording a specific region of the screen and multiprocessing.
 
@@ -28,7 +28,7 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
     # Configs
     debug = False  # Debug mode
     # width = 1500  # Width of the screen
-    # height = 800  # Height of the screen
+    # height = 800  # Height of the screen0
     # position = (100, 0)  # Position of the screen
     fps = 15  # Frames per second
     frames_captured = 0  # Number of frames captured
@@ -111,6 +111,12 @@ def open_window():
     width = 1500
     height = 800
 
+    #########################
+    # values[1] = path - str
+    # values[0] = filename - str
+    # values[2] = save - BOOLEAN
+    # values[3] = object_detection - BOOLEAN
+    #########################
     while True:
         event, values = window.read()
         print(event, values)
@@ -121,12 +127,9 @@ def open_window():
 
         if event == 'Start recording' and record_running.buf[0] == 0:
             record_running.buf[0] = 1  # Setting the shared memory to 1 to start recording
-            # values[1] = path
-            # values[0] = filename
-            # values[2] = save - BOOLEAN
-            # values[3] = object_detection - BOOLEAN
+
             p1 = multiprocessing.Process(target=screen_recorder,
-                                         args=(values[1], values[0], values[2], position, width, height, values[3]))
+                                         args=(values[1], values[0], values[2], position, width, height))
             p1.start()
         elif event == 'Start recording' and record_running.buf[0] == 1:
             print("[WARNING] Recording already running")

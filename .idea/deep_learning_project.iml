@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/screen_recorder/my_utils/yolov5/runs" />
       <excludeFolder url="file://$MODULE_DIR$/screen_recorder/my_utils/yolov5/runs/detect" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (torch_gpu_test) (2)" jdkType="Python SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
