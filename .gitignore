@@ -13,3 +13,8 @@ yolov5m.pt
 yolov5l.pt
 yolov5x.pt
 yolov5x6.pt
+
+# R-CNN files
+R-CNN-test/annotated_dataset/*
+R-CNN-test/original_data/*
+R-CNN-test/proposed_dataset/*

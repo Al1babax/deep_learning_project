@@ -6,6 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/data" />
       <excludeFolder url="file://$MODULE_DIR$/screen_recorder/my_utils/yolov5/runs" />
       <excludeFolder url="file://$MODULE_DIR$/screen_recorder/my_utils/yolov5/runs/detect" />
+      <excludeFolder url="file://$MODULE_DIR$/R-CNN-test/original_data/images" />
+      <excludeFolder url="file://$MODULE_DIR$/R-CNN-test/original_data/labels" />
+      <excludeFolder url="file://$MODULE_DIR$/screen_recorder/my_utils/yolov5" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
