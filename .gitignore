@@ -1,4 +1,7 @@
 *.log
+*.jpg
+*.png
+*.mp4
 
 # all data files
 /data
