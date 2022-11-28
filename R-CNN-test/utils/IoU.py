@@ -12,12 +12,13 @@
 
 def compute_iou(boxA, boxB):
     """
-    Compute the Intersection over Union (IoU) of two bounding boxes.
+    Compute the Intersection over Union (IoU) of two bounding boxes. boxA is the ground truth bounding box and boxB is the predicted bounding box.
+
     Parameters:
         boxA (list): The first bounding box. The box is specified in the format
-            [x, y, width, height].
+            [x_min, y_min, x_max, y_max].
         boxB (list): The second bounding box. The box is specified in the format
-            [x, y, width, height].
+            [x_min, y_min, x_max, y_max].
     Returns:
         iou (float): The Intersection over Union (IoU) of the two bounding boxes.
     """
