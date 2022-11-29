@@ -175,10 +175,6 @@ def open_window():
     window.close()
 
 
-def draw_rectangle():  # TODO - Fix the rectangle not being drawn correctly
-    pass
-
-
 if __name__ == '__main__':
     shm = shared_memory.SharedMemory(name='screen_recording_running', create=True, size=2)
     shm.buf[0] = 0  # to tell subprocess to stop running

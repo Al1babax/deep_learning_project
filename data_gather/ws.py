@@ -15,6 +15,8 @@ frames_per_second = 0  # Frames per second
 new_fps = 0  # New frames per second for counting frames per second
 timer = time.time()  # Start timer
 
+recording_fps = 2  # Frames per second
+
 
 def record_video():
     global frames_captured, recording_start, frames_per_second, new_fps, timer, out
@@ -40,6 +42,8 @@ def record_video():
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        # time.sleep(1 / recording_fps)
 
     cap.release()
     out.release()
