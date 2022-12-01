@@ -4,13 +4,15 @@ from my_utils.yolov5.detect import run
 def run_predict(
         source,  # This is the path to the video file
         weights="yolov5x6.pt",  # This is the path to the weights file
-        conf_thres=0.7,  # Confidence threshold
+        conf_thres=0.75,  # Confidence threshold
         iou_thres=0.35,  # Density of bounding boxes
         device="0",  # Device to run on
         line_thickness=2,  # Thickness of bounding box lines
         view_img=False,  # Display results
         vid_stride=3,  # Number of frames to skip between detections
-        save_location="C:/Users/Alibaba/Desktop/deep_learning_project/deep_learning_project/data/with_ai"    # Location to save the video
+        save_location="C:/Users/Alibaba/Desktop/deep_learning_project/deep_learning_project/data/with_ai",    # Location to save the video
+        save_text=True,  # Save the text file
+        no_save=True,  # Don't save the video
 ):
     run(
         weights=weights,
@@ -21,7 +23,9 @@ def run_predict(
         line_thickness=line_thickness,
         view_img=view_img,
         vid_stride=vid_stride,
-        project=save_location
+        project=save_location,
+        save_txt=save_text,
+        nosave=no_save,
     )
 
 
