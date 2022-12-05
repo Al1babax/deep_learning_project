@@ -5,7 +5,7 @@ def run_predict(
         source,  # This is the path to the video file
         weights="yolov5x6.pt",  # This is the path to the weights file
         conf_thres=0.75,  # Confidence threshold
-        iou_thres=0.35,  # Density of bounding boxes
+        iou_thres=0.02,  # Density of bounding boxes
         device="0",  # Device to run on
         line_thickness=2,  # Thickness of bounding box lines
         view_img=False,  # Display results

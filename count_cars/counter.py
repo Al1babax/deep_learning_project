@@ -70,11 +70,11 @@ def check_if_car_moving(labels, car_locations=None):  # Takes 10 frames of video
             for key, value in car_locations.items():
                 dict_car_x = value["x"]
                 dict_car_y = value["y"]
-                if abs(x - dict_car_x) < 0.1 and abs(y - dict_car_y) < 0.1:
+                if abs(x - dict_car_x) < 0.03 and abs(y - dict_car_y) < 0.03:
                     car_to_be_added = False
                     car_locations[key]["x"] = x
                     car_locations[key]["y"] = y
-                    # car_locations[key]["updated"] = dt.datetime.now()
+                    car_locations[key]["updated"] = dt.datetime.now()
                     break
             else:
                 if car_to_be_added:
@@ -87,15 +87,17 @@ def check_if_car_moving(labels, car_locations=None):  # Takes 10 frames of video
 
     # Remove cars that have not been seen in one second
     current_time = dt.datetime.now()
-    """keys_to_remove = []
+    keys_to_remove = []
     for key, value in car_locations.items():
         if (current_time - value["updated"]).total_seconds() > 2:
             keys_to_remove.append(key)
 
     for key in keys_to_remove:
-        del car_locations[key]"""
+        del car_locations[key]
 
-    # Returning dictionary with cars and their locations so next iteration can check if they are moving
+    # Returning dictionary with cars and their locations so next iteration can check if they are movingq
+    if new_cars_in_frame > 10:
+        new_cars_in_frame = 1
     return car_locations, new_cars_in_frame
 
 

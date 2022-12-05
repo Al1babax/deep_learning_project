@@ -1,18 +1,20 @@
-import datetime as dt
 import multiprocessing
 import time
 from multiprocessing import shared_memory
+import os
 
 import PySimpleGUI as sg
 import cv2
 import numpy as np
 from mss import mss
 
-from my_utils.screen_region import region, main
-from yolov5_detect import run_predict
+from my_utils.screen_region import main
+
+import torch
 
 
-def screen_recorder(path: str, filename: str, save: bool, position, width, height):
+def screen_recorder(path: str, filename: str, save: bool, position, width, height, detection, model_name, confidence,
+                    iou):
     """
     Screen recording function, supports recording a specific region of the screen and multiprocessing.
 
@@ -40,6 +42,28 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
     timeout = 1 / (fps * 2)  # Timeout for the while loop
     stop_record_shm = shared_memory.SharedMemory(name="screen_recording_running")  # 0 = stop running, 1 = running
 
+    if detection:
+        """# Load model
+        model_name_ext = f"{model_name}.pt"
+
+        # Check if model already exists
+        if not os.path.exists(f"models/{model_name_ext}"):
+            print(f"Model {model_name_ext} does not exist, downloading...")
+            model = torch.hub.load('ultralytics/yolov5', model_name)
+            os.rename(model_name_ext, f"models/{model_name_ext}")
+            # os.remove(model_name_ext)
+            print(f"Model {model_name_ext} downloaded")
+        else:
+            # Load model from file
+            print(f"Loading model {model_name_ext}...")
+            model = torch.load(f"models/{model_name_ext}", map_location=torch.device("cuda:0"))
+            print(f"Model {model_name_ext} loaded")"""
+
+        # Load model
+        os.chdir("models")
+        model = torch.hub.load('ultralytics/yolov5', model_name)
+        os.chdir("..")
+
     if save:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(filename=f'{path}/{filename}.mp4', fourcc=fourcc,
@@ -61,6 +85,37 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
             sct_img = sct.grab(bounding_box)
             frame = np.array(sct_img)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+            if detection:
+                # Prepare frame for detection
+                frame_to_model = cv2.resize(frame, (244, 244))
+                frame_to_model = cv2.cvtColor(frame_to_model, cv2.COLOR_BGR2RGB)
+
+                # Inference
+                results = model(frame_to_model)
+                # Results
+                results = results.pandas().xyxy[0]  # img1 predictions (pandas)
+
+                # Get confidence threshold from GUI
+                conf_threshold = shared_memory.SharedMemory(name='confidence_threshold')
+
+                # Draw bounding boxes
+                for i in range(len(results)):
+                    x1, y1, x2, y2, conf, class_id, class_name = results.iloc[i].values
+
+                    conf = round(conf * 100, 0)
+                    if conf < conf_threshold.buf[0]:
+                        continue
+
+                    x1 = int(x1 * (width / 244))
+                    y1 = int(y1 * (height / 244))
+                    x2 = int(x2 * (width / 244))
+                    y2 = int(y2 * (height / 244))
+
+                    # print(x1, y1, x2, y2, conf, class_id, class_name)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                    cv2.putText(frame, f"{class_name} {conf}%", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
             if save:
                 cv2.imshow('screen', frame)
                 out.write(frame)
@@ -82,12 +137,6 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
     stop_record_shm.buf[1] = 1
 
 
-def object_detection(path: str, filename: str):
-    # full_path = f'{path}/{filename}_{dt.datetime.now().strftime("%H_%M_%S")}.mp4'
-    full_path = f'{path}/{filename}.mp4'
-    run_predict(full_path)
-
-
 def open_window():
     layout = [
         [sg.Text('Enter the name of the file to save:'), sg.InputText(default_text="test")],
@@ -100,15 +149,20 @@ def open_window():
             sg.Button('Start recording'),
             sg.Button("Stop recording"),
             sg.Button("Choose region"),
-            sg.Checkbox("Object detection", default=False)
+            sg.Checkbox("Object detection", default=False),
+            sg.OptionMenu(["yolov5s", "yolov5m", "yolov5l", "yolov5x"], default_value="yolov5s", key="model"),
+            sg.Slider(range=(0, 100), default_value=50, orientation="h", size=(20, 15), key="confidence",
+                      tooltip="Confidence threshold", enable_events=True),
+            sg.Slider(range=(0, 100), default_value=50, orientation="h", size=(20, 15), key="iou",
+                      tooltip="IOU threshold"),
         ]
     ]
 
     window = sg.Window('Screen recorder', layout)
 
     # Default values for recording if no region is selected
-    position = (100, 0)
-    width = 1500
+    position = (0, 0)
+    width = 800
     height = 800
 
     #########################
@@ -119,17 +173,30 @@ def open_window():
     #########################
     while True:
         event, values = window.read()
-        print(event, values)
-        record_running = shared_memory.SharedMemory(name='screen_recording_running')
+        print(f"Events: {event}")
+        print(f"Values: {values}")
+
         # print(record_running.buf[0])
         if event == sg.WIN_CLOSED:
             break
+
+        record_running = shared_memory.SharedMemory(name='screen_recording_running')
+        conf_threshold = shared_memory.SharedMemory(name='confidence_threshold')
 
         if event == 'Start recording' and record_running.buf[0] == 0:
             record_running.buf[0] = 1  # Setting the shared memory to 1 to start recording
 
             p1 = multiprocessing.Process(target=screen_recorder,
-                                         args=(values[1], values[0], values[2], position, width, height))
+                                         args=(values[1],
+                                               values[0],
+                                               values[2],
+                                               position,
+                                               width,
+                                               height,
+                                               values[3],
+                                               values["model"],
+                                               values["confidence"],
+                                               values["iou"],))
             p1.start()
         elif event == 'Start recording' and record_running.buf[0] == 1:
             print("[WARNING] Recording already running")
@@ -141,9 +208,10 @@ def open_window():
             coordinates = queue.get()
             # print(coordinates)
             p2.join()
-            position = (coordinates[0][1], coordinates[0][0])
-            width = coordinates[1][0] - coordinates[0][0]
-            height = coordinates[1][1] - coordinates[0][1]
+            if len(coordinates[0]) == 2 and len(coordinates[1]) == 2:
+                position = (coordinates[0][1], coordinates[0][0])
+                width = coordinates[1][0] - coordinates[0][0]
+                height = coordinates[1][1] - coordinates[0][1]
         elif event == 'Choose region' and record_running.buf[0] == 1:
             print("[WARNING] Recording already running, cannot choose region")
 
@@ -163,20 +231,29 @@ def open_window():
                 p1.join()
                 record_running.buf[1] = 0
                 print("[INFO] Closed recording subprocess succesfully")
-
-                if values[3] is True:
-                    print("[INFO] Starting object detection")
-                    object_detection(values[1], values[0])
-                    print("[INFO] Object detection finished")
-
         elif event == 'Stop recording' and record_running.buf[0] == 0:
             print("[WARNING] Recording not running")
+
+        if event == "confidence":
+            conf_threshold.buf[0] = int(values["confidence"])
+            print(f"Confidence threshold: {values['confidence']}")
 
     window.close()
 
 
 if __name__ == '__main__':
-    shm = shared_memory.SharedMemory(name='screen_recording_running', create=True, size=2)
+    try:
+        shm = shared_memory.SharedMemory(name='screen_recording_running', create=True, size=2)
+    except FileExistsError:
+        shm = shared_memory.SharedMemory(name='screen_recording_running', create=False, size=2)
+    try:
+        conf_thres = shared_memory.SharedMemory(name='confidence_threshold', create=True, size=1)
+    except FileExistsError:
+        conf_thres = shared_memory.SharedMemory(name='confidence_threshold', create=False, size=1)
     shm.buf[0] = 0  # to tell subprocess to stop running
     shm.buf[1] = 0  # confirmation that subprocess did stop running
+    conf_thres.buf[0] = 50   # confidence threshold
     open_window()
+    shm.unlink()
+    conf_thres.unlink()
+

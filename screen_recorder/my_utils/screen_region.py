@@ -7,7 +7,7 @@ class DrawShapes(tk.Canvas):
     def __init__(self, **kwargs):
         # setup
         master = tk.Tk()
-        master.attributes('-alpha', 0.2)
+        master.attributes('-alpha', 0.6)
         master.configure(bg="black", cursor="cross")
         master.attributes('-fullscreen', True)
         master.bind('<Escape>', lambda e: master.quit())
@@ -60,31 +60,6 @@ class DrawShapes(tk.Canvas):
     def on_release(self, event):
         """fires when the user releases the mouse ... saves the current rectangle"""
         self.master.destroy()
-
-
-def region(queue="", DEBUG=False):
-    coordinates = [
-        (0, 0),
-        (0, 0)
-    ]
-
-    def on_move(x, y):
-        pass
-
-    def on_click(x, y, button, pressed):
-        if pressed and str(button) == "Button.left":
-            # print(x, y, button, pressed)
-
-            if coordinates[0] == (0, 0):
-                coordinates[0] = (x, y)
-            else:
-                coordinates[1] = (x, y)
-                listener.stop()
-
-    with Listener(on_move=on_move, on_click=on_click) as listener:
-        listener.join()
-        if not DEBUG:
-            queue.put(coordinates)
 
 
 def main(queue=""):
