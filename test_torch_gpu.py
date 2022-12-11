@@ -1,3 +1,5 @@
+# script to check if GPU is working with torch
+
 import torch
 
 print(torch.cuda.is_available())

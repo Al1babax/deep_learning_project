@@ -17,8 +17,7 @@ from my_utils.screen_region import main
 import torch
 
 
-def screen_recorder(path: str, filename: str, save: bool, position, width, height, detection, model_name, confidence,
-                    iou):
+def screen_recorder(path: str, filename: str, save: bool, position, width, height, detection, model_name):
     """
     Screen recording function, supports recording a specific region of the screen and multiprocessing.
 
@@ -48,22 +47,6 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
 
     # If detection is enabled, loads the model here and saves it into models directory
     if detection:
-        """# Load model
-        model_name_ext = f"{model_name}.pt"
-
-        # Check if model already exists
-        if not os.path.exists(f"models/{model_name_ext}"):
-            print(f"Model {model_name_ext} does not exist, downloading...")
-            model = torch.hub.load('ultralytics/yolov5', model_name)
-            os.rename(model_name_ext, f"models/{model_name_ext}")
-            # os.remove(model_name_ext)
-            print(f"Model {model_name_ext} downloaded")
-        else:
-            # Load model from file
-            print(f"Loading model {model_name_ext}...")
-            model = torch.load(f"models/{model_name_ext}", map_location=torch.device("cuda:0"))
-            print(f"Model {model_name_ext} loaded")"""
-
         # Load model
         os.chdir("models")
         model = torch.hub.load('ultralytics/yolov5', model_name)
@@ -167,8 +150,6 @@ def open_window():
             sg.OptionMenu(["yolov5s", "yolov5m", "yolov5l", "yolov5x"], default_value="yolov5s", key="model"),
             sg.Slider(range=(0, 100), default_value=50, orientation="h", size=(20, 15), key="confidence",
                       tooltip="Confidence threshold", enable_events=True),
-            sg.Slider(range=(0, 100), default_value=50, orientation="h", size=(20, 15), key="iou",
-                      tooltip="IOU threshold"),
         ]
     ]
 
@@ -209,9 +190,7 @@ def open_window():
                                                width,
                                                height,
                                                values[3],
-                                               values["model"],
-                                               values["confidence"],
-                                               values["iou"],))
+                                               values["model"],))
             p1.start()
         elif event == 'Start recording' and record_running.buf[0] == 1:
             print("[WARNING] Recording already running")
