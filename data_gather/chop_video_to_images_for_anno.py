@@ -45,9 +45,9 @@ def chop_video_to_images_for_anno(video_path, output_path, frame_rate=20):
 
 
 if __name__ == "__main__":
-    video_file_location = "cctv_data/output_15_45_13.mp4"
+    video_file_location = "cctv_data/output_14_35_03.mp4"
     # create folder for images
-    output_path = "cctv_data/output_15_45_13"
+    output_path = video_file_location.split(".")[0]
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-    chop_video_to_images_for_anno(video_file_location, f"cctv_data/{video_file_location.split('/')[1].split('.')[0]}", 20)
+    chop_video_to_images_for_anno(video_file_location, f"cctv_data/{video_file_location.split('/')[1].split('.')[0]}", 100)

@@ -46,7 +46,8 @@ def parse_detection_results(results):
     # filter confidence
     results = results[results['confidence'] > 0.5]
     # filter class
-    results = results[results['class'] == 2]
+    results = results[results['class'] == 0]    # 0 if I trained the model
+    # results = results[results['class'] == 2] for pretrained COCO model
 
     results['x_center'] = (results['xmin'] + results['xmax']) / 2
     results['y_center'] = (results['ymin'] + results['ymax']) / 2
@@ -54,7 +55,8 @@ def parse_detection_results(results):
     # draw boxes
     draw_boxes(video_c.current_frame, results[['xmin', 'ymin', 'xmax', 'ymax']].values)
 
-    results = results[(results['y_center'] <= 255) & (results["y_center"] >= 254) & (results['x_center'] > 0) & (results['x_center'] < 350)]
+    results = results[(results['y_center'] <= 255) & (results["y_center"] >= 254) & (results['x_center'] > 0) & (
+                results['x_center'] < 350)]
     new_results = results
 
     if temporal_memory.shape[0] != 0:
@@ -112,8 +114,9 @@ def main():
 
 
 if __name__ == '__main__':
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model
-    video_c = VideoDecoder("../data_gather/cctv_data/output_12_31_11.mp4")
+    # model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model, with my custom weights
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path="models/best.pt")  # load YOLOv5s model, with my custom weights
+    video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
     car_counter = 0
     temporal_memory = pd.DataFrame()
     main()

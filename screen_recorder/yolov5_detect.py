@@ -1,10 +1,15 @@
+"""
+This is a test to see how the model performs on a video or image
+"""
+
+
 from my_utils.yolov5.detect import run
 
 
 def run_predict(
         source,  # This is the path to the video file
         weights="yolov5x6.pt",  # This is the path to the weights file
-        conf_thres=0.75,  # Confidence threshold
+        conf_thres=0.50,  # Confidence threshold
         iou_thres=0.02,  # Density of bounding boxes
         device="0",  # Device to run on
         line_thickness=2,  # Thickness of bounding box lines
@@ -32,5 +37,5 @@ def run_predict(
 if __name__ == '__main__':
     pic_source = "../data/test.mp4"
     live_stream = "http://webcam.teuva.fi/axis-cgi/mjpg/video.cgi"
-    own_weights = "my_utils/yolov5/runs/train/exp6/weights/last.pt"
+    own_weights = "my_utils/yolov5/runs/train/exp9/weights/best.pt"
     run_predict(source=live_stream, view_img=True, weights=own_weights)
