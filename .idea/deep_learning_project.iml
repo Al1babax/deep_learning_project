@@ -9,6 +9,8 @@
       <excludeFolder url="file://$MODULE_DIR$/R-CNN-test/original_data/images" />
       <excludeFolder url="file://$MODULE_DIR$/R-CNN-test/original_data/labels" />
       <excludeFolder url="file://$MODULE_DIR$/screen_recorder/my_utils/yolov5" />
+      <excludeFolder url="file://$MODULE_DIR$/R-CNN-test/proposed_dataset/car" />
+      <excludeFolder url="file://$MODULE_DIR$/R-CNN-test/proposed_dataset/non_car" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -4,8 +4,8 @@
 *.mp4
 
 # all data files
-/data/
-/data_gather/cctv_data
+/data/*
+/data_gather/cctv_data/*
 
 # yolov5 files
 /screen_recorder/my_utils/yolov5
