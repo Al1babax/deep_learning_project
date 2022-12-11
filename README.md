@@ -27,6 +27,10 @@ software working without these. Also, it makes software much faster.
 ```bash
 pip install -r requirements.txt
 ```
+4. Install torch separately
+```bash
+pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
+```
 </details>
 
 ## Usage

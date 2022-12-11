@@ -48,6 +48,9 @@ def screen_recorder(path: str, filename: str, save: bool, position, width, heigh
     # If detection is enabled, loads the model here and saves it into models directory
     if detection:
         # Load model
+        # check that models directory exists, if not create one
+        if not os.path.exists("models"):
+            os.mkdir("models")
         os.chdir("models")
         model = torch.hub.load('ultralytics/yolov5', model_name)
         os.chdir("..")
