@@ -3,7 +3,7 @@
 School project for the course "Deep learning" at Jyväskylän ammattikorkeakoulu.
 I decided to make multi-object detection project. The objective was to make model that could be used
 to detect cars from livestream CCTV footage. As a side project I made a screen recording software that
-can be used to record footage from your screen and applying object detection on it.
+can be used to record footage from your screen and apply object detection on it.
 
 YOLOv5 IS NOT INCLUDED IN THIS REPOSITORY. You can find it here:
 https://github.com/ultralytics/yolov5
