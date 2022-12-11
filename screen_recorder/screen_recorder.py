@@ -139,7 +139,7 @@ def open_window():
         [sg.Text('Enter the name of the file to save:'), sg.InputText(default_text="test")],
         [
             sg.Text("Choose save location:"),
-            sg.InputText(default_text="C:/Users/Alibaba/Desktop/deep_learning_project/deep_learning_project/data"),
+            sg.InputText(default_text="Add a path here"),
             sg.FolderBrowse(),
             sg.Checkbox("Save file", default=False)],
         [
