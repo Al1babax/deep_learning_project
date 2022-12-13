@@ -1,3 +1,9 @@
+"""
+https://www.google.com/maps/@62.4850946,21.7459489,3a,75y,34.22h,78.64t/data=!3m6!1e1!3m4!1sAF1QipOLtnAMeSspMdNbMJ4OEpbKblybK60u8Mj8KtA!2e10!7i7680!8i3840
+Link to the location of the live stream on google maps
+"""
+
+
 import cv2
 import time
 import datetime as dt

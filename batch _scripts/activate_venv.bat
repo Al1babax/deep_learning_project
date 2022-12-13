@@ -1,0 +1,1 @@
+call "C:/Users/Alibaba/Desktop/data stuff/torch_gpu_test/Scripts/activate.bat"

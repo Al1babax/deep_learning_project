@@ -3,6 +3,10 @@ import numpy as np
 import pandas as pd
 import torch
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s',
+                    datefmt='%d-%b-%y %H:%M:%S', filename='data/log.txt')
 
 
 class VideoDecoder:
@@ -38,25 +42,24 @@ def draw_boxes(frame, boxes):
         cv2.rectangle(frame, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
 
 
-def parse_detection_results(results):
-    # TODO make code remember cars longer than previous frame
+def parse_detection_results(results, frame):
     global car_counter
     global temporal_memory
 
     # filter confidence
     results = results[results['confidence'] > 0.5]
     # filter class
-    results = results[results['class'] == 0]    # 0 if I trained the model
+    results = results[results['class'] == 0]  # 0 if I trained the model
     # results = results[results['class'] == 2] for pretrained COCO model
 
     results['x_center'] = (results['xmin'] + results['xmax']) / 2
     results['y_center'] = (results['ymin'] + results['ymax']) / 2
 
     # draw boxes
-    draw_boxes(video_c.current_frame, results[['xmin', 'ymin', 'xmax', 'ymax']].values)
+    draw_boxes(frame, results[['xmin', 'ymin', 'xmax', 'ymax']].values)
 
     results = results[(results['y_center'] <= 255) & (results["y_center"] >= 254) & (results['x_center'] > 0) & (
-                results['x_center'] < 350)]
+            results['x_center'] < 350)]
     new_results = results
 
     if temporal_memory.shape[0] != 0:
@@ -77,6 +80,7 @@ def parse_detection_results(results):
         temporal_memory = pd.DataFrame(columns=temporal_memory.columns)
 
     if len(new_results) > 0:
+        logging.info(f"New car detected, Total cars: {car_counter + 1}")
         print(new_results)
 
     # for each result left increase counter
@@ -92,17 +96,19 @@ def parse_detection_results(results):
         return False
 
 
-def main():
+def test_video(video_show=False):
     while True:
         frame = video_c.current_frame
         results = model(video_c.current_frame)
         results = results.pandas().xyxy[0]  # img1 predictions (pandas)
-        save_frame = parse_detection_results(results)
+        save_frame = parse_detection_results(results, frame)
 
         cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
         cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
         cv2.putText(frame, "Cars: " + str(car_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.imshow('frame', frame)
+
+        if video_show:
+            cv2.imshow('frame', frame)
 
         if save_frame:
             cv2.imwrite("images/" + str(time.time()) + ".jpg", frame)
@@ -112,11 +118,54 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    cv2.destroyAllWindows()
+
+
+def live_video(video_show=False):
+    cap = cv2.VideoCapture('http://webcam.teuva.fi/axis-cgi/mjpg/video.cgi')
+    while True:
+        ret, frame = cap.read()
+
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = model(frame)
+            results = results.pandas().xyxy[0]  # img1 predictions (pandas)
+            save_frame = parse_detection_results(results, frame)
+
+            cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
+            cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
+            cv2.putText(frame, "Cars: " + str(car_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+            if video_show:
+                cv2.imshow('frame', frame)
+
+            if save_frame:
+                cv2.imwrite("images/" + str(time.time()) + ".jpg", frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+def main(video="test", video_show=False):
+    if video == "test":
+        test_video(video_show)
+    if video == "live":
+        live_video(video_show)
+
 
 if __name__ == '__main__':
+    # Clean log file
+    with open('data/log.txt', 'w') as f:
+        f.truncate()
+
     # model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model, with my custom weights
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path="models/best.pt")  # load YOLOv5s model, with my custom weights
+    model = torch.hub.load('ultralytics/yolov5', 'custom',
+                           path="models/best.pt")  # load YOLOv5s model, with my custom weights
     video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
     car_counter = 0
     temporal_memory = pd.DataFrame()
-    main()
+
+    main("test", video_show=True)
