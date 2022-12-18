@@ -59,7 +59,7 @@ def parse_detection_results(results, frame):
     draw_boxes(frame, results[['xmin', 'ymin', 'xmax', 'ymax']].values)
 
     results = results[(results['y_center'] <= 255) & (results["y_center"] >= 254) & (results['x_center'] > 0) & (
-            results['x_center'] < 350)]
+            results['x_center'] < 300)]
     new_results = results
 
     if temporal_memory.shape[0] != 0:
@@ -134,6 +134,7 @@ def live_video(video_show=False):
 
             cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
             cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
+            cv2.line(frame, (300,0),(300,480), (255, 0, 0), 3)
             cv2.putText(frame, "Cars: " + str(car_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
             if video_show:
