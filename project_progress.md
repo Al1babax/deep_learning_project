@@ -81,12 +81,23 @@ This way I could track how many cars passed that line.
 ### 4.5 RestApi
 I used logging to save the results, and built small RestAPI that shows the results of cars passing.
 
-### 4.6 Problems
+### 4.6 Performance
+The results are quite accurate for testing videos with error ~1-5%.
+
+For live feed I had worse accuracy. Error ~20-40% . I think there are at least two reasons for this:
+- Brightness of the video
+- Detection model accuracy on live feed
+
+All this could improve with more training. But only long term solution is tracking
+algorithm. 
+
+
+### 4.7 Problems
 Biggest problem was how to accurately count how many cars pass the road.
 Problem was at what point do I count a car on the road as passing car and
 how not to count one car twice. I had ok solution for this, but much better can be done.
 
-### 4.7 Improvements
+### 4.8 Improvements
 To further optimize the performance of the system by fine-tuning the YoloV5 model and implementing
 additional techniques such as object tracking to improve the reliability and accuracy of the car tracking system.
 
