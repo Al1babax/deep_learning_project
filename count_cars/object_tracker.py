@@ -4,10 +4,12 @@ import pandas as pd
 import torch
 import time
 import logging
+import os
 
 # Starting logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s',
                     datefmt='%d-%b-%y %H:%M:%S', filename='data/log.txt')
+
 
 # Video decoder --> making video frame to numpy array
 class VideoDecoder:
@@ -53,7 +55,6 @@ def parse_detection_results(results, frame):
     """
     global car_counter
     global temporal_memory
-
 
     # filter confidence
     results = results[results['confidence'] > 0.7]
@@ -176,6 +177,8 @@ def main(video="test", video_show=False):
 
 
 if __name__ == '__main__':
+    mode = "live"
+
     # Timer for measuring the time of the script
     start_time = time.time()
 
@@ -184,12 +187,23 @@ if __name__ == '__main__':
         f.truncate()
         # pass
 
-    # model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model, with COCO pretrained weights
-    model = torch.hub.load('ultralytics/yolov5', 'custom',
-                           path="models/best.pt")  # load YOLOv5s model, with my custom weights
-    # video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
-    video_c = VideoDecoder("../data_gather/cctv_data/output_15_45_13.mp4")
+    if not os.path.exists('models/best.pt'):
+        model = torch.hub.load('ultralytics/yolov5', 'yolov5x',
+                               pretrained=True)  # load YOLOv5s model, with COCO pretrained weights
+    else:
+        model = torch.hub.load('ultralytics/yolov5', 'custom',
+                               path="models/best.pt")  # load YOLOv5s model, with my custom weights
+
+    if os.path.exists("../data_gather/cctv_data/output_14_35_03.mp4"):
+        mode = "test"
+        video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
+
+    # video_c = VideoDecoder("../data_gather/cctv_data/output_15_45_13.mp4")
+
+    # Init car counter to 0
     car_counter = 0
+    # Create temporal memory to store the cars that are already counted
     temporal_memory = pd.DataFrame()
 
-    main("test", video_show=True)
+    # Change the mode parameter to "test" if you want to run test video in local directory
+    main(mode, video_show=True)

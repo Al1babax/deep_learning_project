@@ -1,5 +1,6 @@
 """
-Parsing log files to get car count per hour/day/week/month, And current car count that has been seen by the system
+Parsing log files to get car count per hour/day/week/month, And current car count that has been seen by the system.
+Using pandas to filter data and get the count.
 """
 import pandas as pd
 import numpy as np

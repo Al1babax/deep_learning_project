@@ -13,6 +13,7 @@ origins = [
     "*"
 ]
 
+# Adding middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -28,6 +29,7 @@ def read_root():
             "message": "This is the root of the API. Please use the /docs endpoint to see the API documentation."}
 
 
+# Endpoint to get all the data
 @app.get("/api/v1/data")
 def get_data(response: Response):
     try:
@@ -38,6 +40,7 @@ def get_data(response: Response):
         return {"error": str(e)}
 
 
+# Endpoint to get data from the past hour
 @app.get("/api/v1/past_hour")
 def get_past_hour(response: Response):
     try:

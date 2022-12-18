@@ -1,3 +1,6 @@
+"""
+Chopping video to images for annotation and training a new model.
+"""
 import cv2
 import os
 
@@ -35,7 +38,7 @@ def chop_video_to_images_for_anno(video_path, output_path, frame_rate=20):
     video_decoder.next_frame()
     frame_number = 1
     while video_decoder.current_frame is not None:
-        if frame_number % frame_rate == 0:
+        if frame_number % frame_rate == 0:  # Chopping every nth frame, n = frame_rate
             cv2.imwrite(output_path + "/frame" + str(frame_number) + ".jpg", video_decoder.current_frame)
             print("Saved frame " + str(frame_number))
         video_decoder.next_frame()

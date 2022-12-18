@@ -29,6 +29,11 @@ for my project. I also used OpenCV for image processing and PySimpleGUI for the 
 You have to install CUDA and cuDNN to your computer. I used CUDA 11.8.0 and cuDNN. I cannot guarantee
 software working without these. Also, it makes software much faster.
 
+To check if you have CUDA and cuDNN installed with pytorch, run this command in your terminal
+(the script located in main repo):
+
+`python test_torch_gpu.py`
+
 ### Installation
 
 1. Clone the repository
@@ -68,7 +73,7 @@ Controls:
 - The slider on bottom left is confidence threshold. You can change it before and while object detection is happening on
   the recording to change what is the threshold of certainty the model needs to have to show an object.
 
-### Object detection
+### Object detection -  Car counter
+To use the car counter run `python count_cars/object_tracker.py`.
 
-Instructions coming soon.
 </details>
