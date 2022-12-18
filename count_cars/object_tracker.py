@@ -5,6 +5,8 @@ import torch
 import time
 import logging
 
+from funcs.IoU import compute_iou
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s',
                     datefmt='%d-%b-%y %H:%M:%S', filename='data/log.txt')
 
@@ -96,12 +98,52 @@ def parse_detection_results(results, frame):
         return False
 
 
+def setup_trackers(results, frame, all_boxes):
+    global trackers
+
+    # print(all_boxes)
+
+    # filter confidence
+    results = results[results['confidence'] > 0.7]
+    # filter class
+    results = results[results['class'] == 0]
+
+    results["width"] = results["xmax"] - results["xmin"]
+    results["height"] = results["ymax"] - results["ymin"]
+
+    for i in range(results.shape[0]):
+        # check that the box is not already in the list
+        highest_iou = 0
+        for box in all_boxes:
+            iou = compute_iou([box[0], box[1], box[0] + box[2], box[1] + box[3]],
+                              [results.iloc[i]["xmin"], results.iloc[i]["ymin"], results.iloc[i]["xmax"],
+                               results.iloc[i]["ymax"]]
+                              )
+            if iou > highest_iou:
+                highest_iou = iou
+
+        if highest_iou < 0.01:
+            print(highest_iou)
+            tracker = cv2.legacy.TrackerKCF_create()
+            bbox = (results.iloc[i]["xmin"], results.iloc[i]["ymin"], results.iloc[i]["width"], results.iloc[i]["height"])
+            trackers.add(tracker, frame, bbox)
+
+
 def test_video(video_show=False):
+    all_boxes = []
     while True:
         frame = video_c.current_frame
         results = model(video_c.current_frame)
         results = results.pandas().xyxy[0]  # img1 predictions (pandas)
-        save_frame = parse_detection_results(results, frame)
+        # save_frame = parse_detection_results(results, frame)
+        setup_trackers(results, frame, all_boxes)
+
+        success, boxes = trackers.update(frame)
+        all_boxes = boxes
+
+        for box in boxes:
+            (x, y, w, h) = [int(v) for v in box]
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
         cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
@@ -109,9 +151,6 @@ def test_video(video_show=False):
 
         if video_show:
             cv2.imshow('frame', frame)
-
-        if save_frame:
-            cv2.imwrite("images/" + str(time.time()) + ".jpg", frame)
 
         video_c.next_frame()
         # time.sleep(0.1)
@@ -134,7 +173,7 @@ def live_video(video_show=False):
 
             cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
             cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
-            cv2.line(frame, (300,0),(300,480), (255, 0, 0), 3)
+            cv2.line(frame, (300, 0), (300, 480), (255, 0, 0), 3)
             cv2.putText(frame, "Cars: " + str(car_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
             if video_show:
@@ -158,6 +197,18 @@ def main(video="test", video_show=False):
 
 
 if __name__ == '__main__':
+    OBJECT_TRACKERS = {
+        "csrt": cv2.legacy.TrackerCSRT_create,
+        "kcf": cv2.legacy.TrackerKCF_create,
+        "boosting": cv2.legacy.TrackerBoosting_create,
+        "mil": cv2.legacy.TrackerMIL_create,
+        "tld": cv2.legacy.TrackerTLD_create,
+        "medianflow": cv2.legacy.TrackerMedianFlow_create,
+        "mosse": cv2.legacy.TrackerMOSSE_create
+    }
+
+    trackers = cv2.legacy.MultiTracker_create()
+
     # Clean log file
     with open('data/log.txt', 'w') as f:
         f.truncate()
