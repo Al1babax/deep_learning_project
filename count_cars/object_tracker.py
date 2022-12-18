@@ -184,7 +184,7 @@ if __name__ == '__main__':
         f.truncate()
         # pass
 
-    # model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model, with my custom weights
+    # model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model, with COCO pretrained weights
     model = torch.hub.load('ultralytics/yolov5', 'custom',
                            path="models/best.pt")  # load YOLOv5s model, with my custom weights
     # video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
