@@ -5,10 +5,11 @@ import torch
 import time
 import logging
 
+# Starting logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s|%(name)s|%(levelname)s|%(message)s',
                     datefmt='%d-%b-%y %H:%M:%S', filename='data/log.txt')
 
-
+# Video decoder --> making video frame to numpy array
 class VideoDecoder:
 
     def __init__(self, video_path):
@@ -38,16 +39,24 @@ class VideoDecoder:
 
 
 def draw_boxes(frame, boxes):
+    # Drawing all the bounding boxes
     for box in boxes:
         cv2.rectangle(frame, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
 
 
 def parse_detection_results(results, frame):
+    """
+    Parsing through all the results and counting cars that are in the right area.
+    :param results:
+    :param frame:
+    :return:
+    """
     global car_counter
     global temporal_memory
 
+
     # filter confidence
-    results = results[results['confidence'] > 0.5]
+    results = results[results['confidence'] > 0.7]
     # filter class
     results = results[results['class'] == 0]  # 0 if I trained the model
     # results = results[results['class'] == 2] for pretrained COCO model
@@ -71,6 +80,7 @@ def parse_detection_results(results, frame):
         new_results = pd.DataFrame(columns=results.columns)
 
         for i in range(results.shape[0]):
+            # Checking that new car is not in the same place as old car aka same car
             if np.any(np.abs(results.iloc[i]['y_center'] - y_center_values) > 3):
                 new_row = results.iloc[i]
                 new_results = pd.concat([new_results, new_row], axis=1)
@@ -79,6 +89,7 @@ def parse_detection_results(results, frame):
 
         temporal_memory = pd.DataFrame(columns=temporal_memory.columns)
 
+    # Logging the new cars for API
     if len(new_results) > 0:
         logging.info(f"New car detected, Total cars: {car_counter + 1}")
         print(new_results)
@@ -90,6 +101,7 @@ def parse_detection_results(results, frame):
     # save results to temporal memory
     temporal_memory = new_results
 
+    # Returning boolean value whether the frame should be saved or not
     if len(new_results) > 0:
         return True
     else:
@@ -97,22 +109,27 @@ def parse_detection_results(results, frame):
 
 
 def test_video(video_show=False):
+    # Main loop that is going through all the frames
     while True:
         frame = video_c.current_frame
         results = model(video_c.current_frame)
         results = results.pandas().xyxy[0]  # img1 predictions (pandas)
         save_frame = parse_detection_results(results, frame)
 
+        # Draw area of detection
         cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
+        # Draw horizontal line of detection
         cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
+        # Draw a vertical limit that no car right to this will we counted
+        cv2.line(frame, (300, 0), (300, 480), (255, 0, 0), 3)
+        # Draw text for car count
         cv2.putText(frame, "Cars: " + str(car_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
+        # Showing the frame
         if video_show:
             cv2.imshow('frame', frame)
 
-        if save_frame:
-            cv2.imwrite("images/" + str(time.time()) + ".jpg", frame)
-
+        # Going to next frame
         video_c.next_frame()
         # time.sleep(0.1)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -132,16 +149,17 @@ def live_video(video_show=False):
             results = results.pandas().xyxy[0]  # img1 predictions (pandas)
             save_frame = parse_detection_results(results, frame)
 
+            # Draw area of detection
             cv2.polylines(frame, [np.array([[0, 400], [220, 250], [50, 260], [0, 280]])], True, (0, 0, 255), 2)
+            # Draw horizontal line of detection
             cv2.line(frame, (0, 255), (640, 255), (255, 0, 0), 3)
-            cv2.line(frame, (300,0),(300,480), (255, 0, 0), 3)
+            # Draw a vertical limit that no car right to this will we counted
+            cv2.line(frame, (300, 0), (300, 480), (255, 0, 0), 3)
+            # Draw text for car count
             cv2.putText(frame, "Cars: " + str(car_counter), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
             if video_show:
                 cv2.imshow('frame', frame)
-
-            if save_frame:
-                cv2.imwrite("images/" + str(time.time()) + ".jpg", frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -158,14 +176,19 @@ def main(video="test", video_show=False):
 
 
 if __name__ == '__main__':
-    # Clean log file
+    # Timer for measuring the time of the script
+    start_time = time.time()
+
+    # Clean log file --> THIS IS ONLY FOR TESTING
     with open('data/log.txt', 'w') as f:
         f.truncate()
+        # pass
 
     # model = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)  # load YOLOv5s model, with my custom weights
     model = torch.hub.load('ultralytics/yolov5', 'custom',
                            path="models/best.pt")  # load YOLOv5s model, with my custom weights
-    video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
+    # video_c = VideoDecoder("../data_gather/cctv_data/output_14_35_03.mp4")
+    video_c = VideoDecoder("../data_gather/cctv_data/output_15_45_13.mp4")
     car_counter = 0
     temporal_memory = pd.DataFrame()
 
