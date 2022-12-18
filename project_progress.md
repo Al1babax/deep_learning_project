@@ -27,6 +27,8 @@ and classification that they are cars. Only thing I got done here was detecting 
 ## 3. Second approach
 `R-CNN-test/`
 
+https://roboflow.com/ For annotating data
+
 Next I studied how other projects do this and I learned that they use two scripts. One for detecting bounding boxes and
 another for just regular classification neural network aka R-CNN model.
 I like to call it regional convolution neural network even though it is not right, but it explains what it does.
@@ -57,6 +59,8 @@ Fortunately this is the old way, and this model has been improved several times 
 `count_cars/`
 `API/`
 `batch_scripts/`
+
+https://roboflow.com/ For annotating data
 
 Rather than focusing making myself good R-CNN algorithm with the new search algorithms I decided to just use premade
 model and improve on top of it. I chose model called YoloV5.
