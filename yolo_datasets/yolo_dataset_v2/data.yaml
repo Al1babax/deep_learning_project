@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['Car']
+
+roboflow:
+  workspace: project
+  project: test-m3hqm
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/project/test-m3hqm/dataset/1
